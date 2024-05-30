@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>PM2 Logs</title>
+</head>
+
+<body>
+    <h1>PM2 Logs</h1>
+    <pre id="logs"></pre>
+    <script>
+        const logs = document.getElementById('logs');
+        const ws = new WebSocket('ws://localhost:8080/logs');
+        ws.onmessage = (event) => {
+            logs.textContent += event.data + '\n';
+        };
+    </script>
+</body>
+
+</html>
