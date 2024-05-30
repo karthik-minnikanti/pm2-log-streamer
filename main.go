@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 
 	"github.com/gorilla/websocket"
@@ -17,16 +19,34 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+type Config struct {
+	WebSocketURL string `json:"websocket_url"`
+}
+
 func main() {
 	// Serve static files from the /static directory
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
+	// Serve configuration file
+	http.HandleFunc("/config", handleConfig)
+
 	// Handle WebSocket connections for logs
 	http.HandleFunc("/logs", handleLogs)
 
-	log.Println("Server started at :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server started at :9192")
+	log.Fatal(http.ListenAndServe(":9192", nil))
+}
+
+func handleConfig(w http.ResponseWriter, r *http.Request) {
+	config := Config{
+		WebSocketURL: os.Getenv("WEBSOCKET_URL"),
+	}
+	if config.WebSocketURL == "" {
+		config.WebSocketURL = "ws://localhost:9192/logs"
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(config)
 }
 
 func handleLogs(w http.ResponseWriter, r *http.Request) {
