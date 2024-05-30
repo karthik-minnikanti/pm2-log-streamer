@@ -9,6 +9,7 @@ import (
 	"os/exec"
 
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 var upgrader = websocket.Upgrader{
@@ -24,6 +25,11 @@ type Config struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
+
 	// Serve static files from the /static directory
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -43,7 +49,7 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 		WebSocketURL: os.Getenv("WEBSOCKET_URL"),
 	}
 	if config.WebSocketURL == "" {
-		config.WebSocketURL = "ws://localhost:9192/logs"
+		config.WebSocketURL = "ws://localhost:9182/logs"
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(config)
